@@ -1,0 +1,40 @@
+FluxionEngine.sln
+?
+?? Fluxion.Core            // entry points, app loop, config, utilities
+?  ?? App/
+?  ?? Config/
+?  ?? Timing/
+?
+?? Fluxion.Math            // algebra, calculus, trig, numerics
+?  ?? Algebra/
+?  ?? Calculus/
+?  ?? Trigonometry/
+?  ?? LinearAlgebra/
+?  ?? Optimization/
+?  ?? ODE/
+?
+?? Fluxion.Physics         // physics models + integrators
+?  ?? Mechanics/
+?  ?? Fields/
+?  ?? Collisions/
+?  ?? Integrators/
+?
+?? Fluxion.AI              // autodiff/backprop, simple models, training loops
+?  ?? Autodiff/
+?  ?? Models/
+?  ?? Training/
+?
+?? Fluxion.Rendering       // OpenTK window + minimal rendering
+?  ?? Windowing/
+?  ?? GL/
+?  ?? Draw/
+?
+?? Fluxion.Simulations     // plug-in simulations using Math/Physics
+?  ?? Interfaces/
+?  ?? NBody/
+?  ?? DoublePendulum/
+?  ?? Examples/
+?
+?? Fluxion.Tests           // unit tests (xUnit/NUnit)
+?
+?? Fluxion.Benchmarks      // perf tests (BenchmarkDotNet)
