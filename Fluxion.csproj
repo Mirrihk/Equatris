@@ -23,8 +23,9 @@
     <Folder Include="Fluxion.Core\Config\" />
     <Folder Include="Fluxion.Core\Timing\" />
     <Folder Include="Fluxion.Demo\" />
-    <Folder Include="Fluxion.Math\Algebra\" />
-    <Folder Include="Fluxion.Math\Algerbra\" />
+    <Folder Include="Fluxion.Math\Algebra\Equations\" />
+    <Folder Include="Fluxion.Math\Algebra\Functions\" />
+    <Folder Include="Fluxion.Math\Algebra\Polynomials\" />
     <Folder Include="Fluxion.Math\Calculus\" />
     <Folder Include="Fluxion.Math\ODE\" />
     <Folder Include="Fluxion.Math\Optimazation\" />
@@ -33,7 +34,6 @@
     <Folder Include="Fluxion.Physics\Models\" />
     <Folder Include="Fluxion.Physics\Training\" />
     <Folder Include="Fluxion.Rendering\GL\" />
-    <Folder Include="Fluxion.Rendering\Windowing\" />
     <Folder Include="Fluxion.Simulations\DoublePendulum\" />
     <Folder Include="Fluxion.Simulations\Examples\" />
     <Folder Include="Fluxion.Simulations\Interfaces\" />

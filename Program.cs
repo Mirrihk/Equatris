@@ -1,14 +1,15 @@
-﻿// Fluxion.Core/App/Program.cs
-using Fluxion.Rendering.Draw;
+﻿using Fluxion.Rendering.Windowing;
+using Fluxion.Simulations.Algebra;
 
-namespace Fluxion.Core.App
+using var window = new FluxWindow(1280, 720, "Fluxion Engine");
+AlgebraScene? scene = null;
+
+window.OnLoadCallback = () =>
 {
-    public static class Program
-    {
-        public static void Main(string[] args)
-        {
-            using var window = new FluxWindow(1280, 720, "Fluxion Engine");
-            window.Run();
-        }
-    }
-}
+    scene = new AlgebraScene(); // now context exists
+};
+
+window.OnDraw = dt => scene?.Render(dt);
+
+window.Run();
+scene?.Dispose();
