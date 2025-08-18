@@ -1,30 +1,31 @@
-﻿// Fluxion.Rendering/Draw/AxesRenderer.cs
+﻿using System;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 
 namespace Fluxion.Rendering.Draw
 {
+    /// <summary>Draws simple X/Y axes centered at the origin.</summary>
     public sealed class AxesRenderer : IDisposable
     {
         private readonly int _vao, _vbo, _shader;
+        private readonly int _locMvp, _locColor;
 
-        private const string VS = """
-            #version 330 core
+        private const string VS = @"#version 330 core
             layout (location = 0) in vec2 aPos;
             uniform mat4 uMVP;
-            void main(){ gl_Position = uMVP * vec4(aPos, 0.0, 1.0); }
-        """;
+            void main(){ gl_Position = uMVP * vec4(aPos, 0.0, 1.0); }";
 
-        private const string FS = """
-            #version 330 core
-            out vec4 FragColor;
+        private const string FS = @"#version 330 core
             uniform vec3 uColor;
-            void main(){ FragColor = vec4(uColor, 1.0); }
-        """;
+            out vec4 FragColor;
+            void main(){ FragColor = vec4(uColor, 1.0); }";
 
         public AxesRenderer()
         {
             _shader = Compile(VS, FS);
+            _locMvp = GL.GetUniformLocation(_shader, "uMVP");
+            _locColor = GL.GetUniformLocation(_shader, "uColor");
+
             _vao = GL.GenVertexArray();
             _vbo = GL.GenBuffer();
 
@@ -32,46 +33,30 @@ namespace Fluxion.Rendering.Draw
             GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
             GL.EnableVertexAttribArray(0);
             GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
+            GL.BindVertexArray(0);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         }
 
-        public void DrawAxes(Matrix4 mvp)
+        public void DrawAxes(Matrix4 projection)
         {
-            // x- and y- axes from -10..10
-            var verts = new float[]
-            {
-                -10, 0,  10, 0,   // X axis
-                 0, -10, 0, 10    // Y axis
+            float[] verts = {
+                -10f, 0f,  10f, 0f,   // X axis
+                 0f, -10f,  0f, 10f   // Y axis
             };
 
             GL.UseProgram(_shader);
-            GL.UniformMatrix4(GL.GetUniformLocation(_shader, "uMVP"), false, ref mvp);
-            GL.Uniform3(GL.GetUniformLocation(_shader, "uColor"), new Vector3(0.8f, 0.8f, 0.8f));
+            GL.UniformMatrix4(_locMvp, false, ref projection);
+            GL.Uniform3(_locColor, 0.8f, 0.8f, 0.8f);
 
             GL.BindVertexArray(_vao);
             GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
             GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.DynamicDraw);
+
+            GL.LineWidth(1.5f);
             GL.DrawArrays(PrimitiveType.Lines, 0, 4);
-        }
 
-        public void DrawParabola(Matrix4 mvp, float a, float b, float c, float xMin = -5, float xMax = 5, int samples = 256)
-        {
-            var verts = new float[samples * 2];
-            float step = (xMax - xMin) / (samples - 1);
-            for (int i = 0; i < samples; i++)
-            {
-                float x = xMin + i * step;
-                float y = a * x * x + b * x + c;
-                verts[2 * i] = x; verts[2 * i + 1] = y;
-            }
-
-            GL.UseProgram(_shader);
-            GL.UniformMatrix4(GL.GetUniformLocation(_shader, "uMVP"), false, ref mvp);
-            GL.Uniform3(GL.GetUniformLocation(_shader, "uColor"), new Vector3(0.2f, 0.8f, 0.3f));
-
-            GL.BindVertexArray(_vao);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.DynamicDraw);
-            GL.DrawArrays(PrimitiveType.LineStrip, 0, samples);
+            GL.BindVertexArray(0);
+            GL.UseProgram(0);
         }
 
         private static int Compile(string vs, string fs)
@@ -79,7 +64,8 @@ namespace Fluxion.Rendering.Draw
             int v = GL.CreateShader(ShaderType.VertexShader); GL.ShaderSource(v, vs); GL.CompileShader(v);
             int f = GL.CreateShader(ShaderType.FragmentShader); GL.ShaderSource(f, fs); GL.CompileShader(f);
             int p = GL.CreateProgram(); GL.AttachShader(p, v); GL.AttachShader(p, f); GL.LinkProgram(p);
-            GL.DeleteShader(v); GL.DeleteShader(f); return p;
+            GL.DeleteShader(v); GL.DeleteShader(f);
+            return p;
         }
 
         public void Dispose()

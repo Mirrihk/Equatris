@@ -1,4 +1,6 @@
 ﻿// Fluxion.Math/Algebra/Concepts/AlgebraSeeds.cs
+using Fluxion.Math.Algebra;
+
 namespace Fluxion.Math.Algebra.Concepts
 {
     public static class AlgebraSeeds
