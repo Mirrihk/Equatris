@@ -1,15 +1,13 @@
 ﻿using System;
-using System.Numerics;   // for Vector2
-using Fluxion.Rendering.Visualize;
+using System.Numerics;
 
 namespace Fluxion.Rendering.Visualize
 {
     public static class Plot2DFactory
     {
-        /// <summary>
         /// Generate a sampled plot of y = f(x) between [xMin, xMax].
-        /// </summary>
-        public static Plot2D Function(Func<double, double> f, double xMin, double xMax, int samples = 100, PlotStyle? style = null)
+        public static Plot2D Function(Func<double, double> f, double xMin, double xMax,
+                                      int samples = 200, PlotStyle? style = null)
         {
             if (samples < 2) samples = 2;
 

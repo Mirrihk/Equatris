@@ -1,4 +1,5 @@
-﻿namespace Fluxion.Math.Algebra.Equations
+﻿/// Fluxion.MAth/Equations.Linear.cs
+namespace Fluxion.Math.Algebra.Equations
 {
     public class Linear
     {
@@ -13,4 +14,5 @@
 
         public double Evaluate(double x) => A * x + B;
     }
+
 }
