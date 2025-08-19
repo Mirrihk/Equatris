@@ -1,26 +1,29 @@
 ﻿using System;
+using System.Numerics;                 // Plot data uses System.Numerics
+using Fluxion.Rendering.Visualize;
 using OpenTK.Graphics.OpenGL4;
-using OpenTK.Mathematics;
+using OpenTK.Mathematics;              // GL matrices
 
 namespace Fluxion.Rendering.Draw
 {
-    /// <summary>Draws simple X/Y axes centered at the origin.</summary>
-    public sealed class AxesRenderer : IDisposable
+    /// <summary>Renders 2D polylines/points using an orthographic projection.</summary>
+    public sealed class CurveRenderer2D : IDisposable
     {
         private readonly int _vao, _vbo, _shader;
         private readonly int _locMvp, _locColor;
+        private int _cachedCapacityFloats = 0;
 
         private const string VS = @"#version 330 core
             layout (location = 0) in vec2 aPos;
             uniform mat4 uMVP;
-            void main(){ gl_Position = uMVP * vec4(aPos, 0.0, 1.0); }";
+            void main() { gl_Position = uMVP * vec4(aPos, 0.0, 1.0); }";
 
         private const string FS = @"#version 330 core
             uniform vec3 uColor;
             out vec4 FragColor;
-            void main(){ FragColor = vec4(uColor, 1.0); }";
+            void main() { FragColor = vec4(uColor, 1.0); }";
 
-        public AxesRenderer()
+        public CurveRenderer2D()
         {
             _shader = Compile(VS, FS);
             _locMvp = GL.GetUniformLocation(_shader, "uMVP");
@@ -37,23 +40,47 @@ namespace Fluxion.Rendering.Draw
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         }
 
-        public void DrawAxes(Matrix4 projection)
+        public void Draw(Plot2D plot, Matrix4 projection)
         {
-            float[] verts = {
-                -10f, 0f,  10f, 0f,   // X axis
-                 0f, -10f,  0f, 10f   // Y axis
-            };
+            int n = plot.Points.Count;
+            if (n == 0) return;
+
+            // Flatten to float[]
+            var needed = n * 2;
+            var verts = new float[needed];
+            for (int i = 0, j = 0; i < n; i++)
+            {
+                var p = plot.Points[i];
+                verts[j++] = p.X;
+                verts[j++] = p.Y;
+            }
 
             GL.UseProgram(_shader);
             GL.UniformMatrix4(_locMvp, false, ref projection);
-            GL.Uniform3(_locColor, 0.8f, 0.8f, 0.8f);
+
+            var rgb = plot.Style.Rgb ?? new System.Numerics.Vector3(1f, 1f, 1f);
+            GL.Uniform3(_locColor, rgb.X, rgb.Y, rgb.Z);
 
             GL.BindVertexArray(_vao);
             GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.DynamicDraw);
 
-            GL.LineWidth(1.5f);
-            GL.DrawArrays(PrimitiveType.Lines, 0, 4);
+            if (needed > _cachedCapacityFloats)
+            {
+                GL.BufferData(BufferTarget.ArrayBuffer, needed * sizeof(float), IntPtr.Zero, BufferUsageHint.DynamicDraw);
+                _cachedCapacityFloats = needed;
+            }
+            GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, needed * sizeof(float), verts);
+
+            if (plot.Style.Lines && n >= 2)
+            {
+                GL.LineWidth(plot.Style.Width <= 0 ? 1f : plot.Style.Width);
+                GL.DrawArrays(PrimitiveType.LineStrip, 0, n);
+            }
+            if (plot.Style.Points)
+            {
+                GL.PointSize(plot.Style.Width <= 0 ? 1f : plot.Style.Width);
+                GL.DrawArrays(PrimitiveType.Points, 0, n);
+            }
 
             GL.BindVertexArray(0);
             GL.UseProgram(0);

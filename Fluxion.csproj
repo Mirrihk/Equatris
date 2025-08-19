@@ -8,24 +8,30 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="FluentAssertions" Version="8.6.0" />
+    <PackageReference Include="FluentValidation" Version="12.0.0" />
+    <PackageReference Include="FluxionSharp" Version="2.0.0" />
     <PackageReference Include="ImGui.NET" Version="1.91.6.1" />
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
     <PackageReference Include="OpenTK" Version="4.9.4" />
     <PackageReference Include="OpenTK.Windowing.Desktop" Version="4.9.4" />
     <PackageReference Include="TorchSharp" Version="0.105.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.abstractions" Version="2.0.3" />
+    <PackageReference Include="xunit.analyzers" Version="1.24.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="xunit.core" Version="2.9.3" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Fluxion.AI\Autodiff\" />
     <Folder Include="Fluxion.AI\Models\" />
     <Folder Include="Fluxion.AI\Training\" />
-    <Folder Include="Fluxion.Core\App\" />
     <Folder Include="Fluxion.Core\Config\" />
     <Folder Include="Fluxion.Core\Timing\" />
     <Folder Include="Fluxion.Demo\" />
-    <Folder Include="Fluxion.Math\Algebra\Equations\" />
-    <Folder Include="Fluxion.Math\Algebra\Functions\" />
-    <Folder Include="Fluxion.Math\Algebra\Polynomials\" />
     <Folder Include="Fluxion.Math\Calculus\" />
     <Folder Include="Fluxion.Math\ODE\" />
     <Folder Include="Fluxion.Math\Optimazation\" />
@@ -38,7 +44,6 @@
     <Folder Include="Fluxion.Simulations\Examples\" />
     <Folder Include="Fluxion.Simulations\Interfaces\" />
     <Folder Include="Fluxion.Simulations\NBody\" />
-    <Folder Include="Fluxion.Tests\" />
   </ItemGroup>
 
 </Project>
