@@ -37,5 +37,15 @@ namespace Fluxion.Math.Algebra
         {
             return System.Math.Abs(a * b) / Gcd(a, b);
         }
+
+        public static bool NearlyEqual( double a, double b, double eps = 1e-9)
+        {
+            if (a.Equals(b)) return true;
+
+            double diff = System.Math.Abs(a - b);
+            double norm = System.Math.Min((System.Math.Abs(a) + System.Math.Abs(b)), double.MaxValue);
+
+            return diff < System.Math.Max(eps, eps * norm);
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Fluxion.Rendering/Draw/AxesRenderer.cs
+using System;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 
@@ -37,11 +38,12 @@ namespace Fluxion.Rendering.Draw
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         }
 
-        public void DrawAxes(Matrix4 projection)
+        /// <summary>Draw axes with tickless crosshairs in [-range, +range].</summary>
+        public void DrawAxes(Matrix4 projection, float range = 10f)
         {
             float[] verts = {
-                -10f, 0f,  10f, 0f,   // X axis
-                 0f, -10f,  0f, 10f   // Y axis
+                -range, 0f,  range, 0f,   // X axis
+                 0f, -range, 0f,  range   // Y axis
             };
 
             GL.UseProgram(_shader);
@@ -61,10 +63,21 @@ namespace Fluxion.Rendering.Draw
 
         private static int Compile(string vs, string fs)
         {
-            int v = GL.CreateShader(ShaderType.VertexShader); GL.ShaderSource(v, vs); GL.CompileShader(v);
-            int f = GL.CreateShader(ShaderType.FragmentShader); GL.ShaderSource(f, fs); GL.CompileShader(f);
-            int p = GL.CreateProgram(); GL.AttachShader(p, v); GL.AttachShader(p, f); GL.LinkProgram(p);
-            GL.DeleteShader(v); GL.DeleteShader(f);
+            int v = GL.CreateShader(ShaderType.VertexShader);
+            GL.ShaderSource(v, vs);
+            GL.CompileShader(v);
+
+            int f = GL.CreateShader(ShaderType.FragmentShader);
+            GL.ShaderSource(f, fs);
+            GL.CompileShader(f);
+
+            int p = GL.CreateProgram();
+            GL.AttachShader(p, v);
+            GL.AttachShader(p, f);
+            GL.LinkProgram(p);
+
+            GL.DeleteShader(v);
+            GL.DeleteShader(f);
             return p;
         }
 
