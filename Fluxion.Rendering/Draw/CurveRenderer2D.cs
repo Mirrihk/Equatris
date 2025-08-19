@@ -1,12 +1,14 @@
 ﻿using System;
-using System.Numerics;                 // Plot data uses System.Numerics
-using Fluxion.Rendering.Visualize;
+using System.Numerics;                 // for Vector2 in Plot2D
+using Fluxion.Rendering.Visualize;     // Plot2D, PlotStyle
 using OpenTK.Graphics.OpenGL4;
-using OpenTK.Mathematics;              // GL matrices
+using OpenTK.Mathematics;
 
 namespace Fluxion.Rendering.Draw
 {
-    /// <summary>Renders 2D polylines/points using an orthographic projection.</summary>
+    /// <summary>
+    /// Renders 2D curves (lines/points) from Plot2D using an orthographic projection.
+    /// </summary>
     public sealed class CurveRenderer2D : IDisposable
     {
         private readonly int _vao, _vbo, _shader;
@@ -45,7 +47,7 @@ namespace Fluxion.Rendering.Draw
             int n = plot.Points.Count;
             if (n == 0) return;
 
-            // Flatten to float[]
+            // Flatten Plot2D points into float[]
             var needed = n * 2;
             var verts = new float[needed];
             for (int i = 0, j = 0; i < n; i++)
@@ -58,7 +60,10 @@ namespace Fluxion.Rendering.Draw
             GL.UseProgram(_shader);
             GL.UniformMatrix4(_locMvp, false, ref projection);
 
-            var rgb = plot.Style.Rgb ?? new System.Numerics.Vector3(1f, 1f, 1f);
+            OpenTK.Mathematics.Vector3 rgb = plot.Style.Rgb.HasValue
+                  ? new OpenTK.Mathematics.Vector3(plot.Style.Rgb.Value.X, plot.Style.Rgb.Value.Y, plot.Style.Rgb.Value.Z)
+                : new OpenTK.Mathematics.Vector3(1f, 1f, 1f);
+
             GL.Uniform3(_locColor, rgb.X, rgb.Y, rgb.Z);
 
             GL.BindVertexArray(_vao);
@@ -88,10 +93,21 @@ namespace Fluxion.Rendering.Draw
 
         private static int Compile(string vs, string fs)
         {
-            int v = GL.CreateShader(ShaderType.VertexShader); GL.ShaderSource(v, vs); GL.CompileShader(v);
-            int f = GL.CreateShader(ShaderType.FragmentShader); GL.ShaderSource(f, fs); GL.CompileShader(f);
-            int p = GL.CreateProgram(); GL.AttachShader(p, v); GL.AttachShader(p, f); GL.LinkProgram(p);
-            GL.DeleteShader(v); GL.DeleteShader(f);
+            int v = GL.CreateShader(ShaderType.VertexShader);
+            GL.ShaderSource(v, vs);
+            GL.CompileShader(v);
+
+            int f = GL.CreateShader(ShaderType.FragmentShader);
+            GL.ShaderSource(f, fs);
+            GL.CompileShader(f);
+
+            int p = GL.CreateProgram();
+            GL.AttachShader(p, v);
+            GL.AttachShader(p, f);
+            GL.LinkProgram(p);
+
+            GL.DeleteShader(v);
+            GL.DeleteShader(f);
             return p;
         }
 

@@ -1,15 +1,19 @@
 ﻿// Fluxion.Math/Algebra/Solvers/LinearSolver.cs
 using System;
+using Fluxion.Math.Algebra.Equations;
 
 namespace Fluxion.Math.Algebra.Solvers
 {
     public static class LinearSolver
     {
-        /// <summary>Solves a1*x + a0 = 0. Returns NaN if no single real root.</summary>
-        public static double Solve(double a1, double a0)
+        /// <summary>
+        /// Solve Ax + B = 0. Returns NaN if no unique solution.
+        /// </summary>
+        public static double Solve(Linear eq, double eps = 1e-12)
         {
-            if (a1 == 0) return double.NaN; // no solution or infinite; caller decides
-            return -a0 / a1;
+            if (System.Math.Abs(eq.A) < eps)
+                return double.NaN; // no solution or infinite solutions
+            return -eq.B / eq.A;
         }
     }
 }

@@ -1,42 +1,91 @@
 ﻿// Fluxion.Rendering/Windowing/FluxWindow.cs
-using OpenTK.Windowing.Desktop;
-using OpenTK.Windowing.Common;
-using OpenTK.Mathematics;
+using System;
 using OpenTK.Graphics.OpenGL4;
+using OpenTK.Mathematics;
+using OpenTK.Windowing.Common;
+using OpenTK.Windowing.Desktop;
 
 namespace Fluxion.Rendering.Windowing
 {
-    public sealed class FluxWindow : GameWindow
+    /// <summary>
+    /// Thin wrapper around OpenTK's GameWindow.
+    /// Lets you plug in drawing code via OnDraw.
+    /// </summary>
+    public sealed class FluxWindow : IDisposable
     {
-        public Action? OnLoadCallback { get; set; }   // <-- NEW
-        public Action<float>? OnDraw { get; set; }    // already used earlier
+        private readonly GameWindow _gw;
+
+        /// <summary>
+        /// Called every frame with deltaTime (in seconds).
+        /// Assign your rendering logic here.
+        /// </summary>
+        public Action<float>? OnDraw { get; set; }
 
         public FluxWindow(int width, int height, string title)
-            : base(GameWindowSettings.Default, new NativeWindowSettings
-            {
-                ClientSize = new Vector2i(width, height),
-                Title = title
-            })
-        { }
-
-        protected override void OnLoad()
         {
-            base.OnLoad();
-            VSync = VSyncMode.On;
-            GL.Enable(EnableCap.DepthTest);
-            GL.ClearColor(0.08f, 0.09f, 0.10f, 1f);
+            var native = new NativeWindowSettings
+            {
+                Title = title,
+                ClientSize = new Vector2i(width, height),
+                APIVersion = new Version(3, 3),
+                StartVisible = true,
+                StartFocused = true
+            };
 
-            OnLoadCallback?.Invoke();                 // <-- SAFE INIT POINT
+            _gw = new GameWindow(GameWindowSettings.Default, native);
+
+            // Hooks
+            _gw.Load += OnLoad;
+            _gw.Unload += OnUnload;
+            _gw.Resize += e => GL.Viewport(0, 0, _gw.ClientSize.X, _gw.ClientSize.Y);
+            _gw.UpdateFrame += Update;
+            _gw.RenderFrame += Render;
+
+            // Start with VSync on
+            _gw.VSync = VSyncMode.On;
         }
 
-        protected override void OnRenderFrame(FrameEventArgs args)
+        private void OnLoad()
         {
-            base.OnRenderFrame(args);
+            GL.ClearColor(0.10f, 0.10f, 0.12f, 1f);
+            GL.Enable(EnableCap.Blend);
+            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+
+            // Debug info
+            try
+            {
+                Console.WriteLine($"[GL] Version : {GL.GetString(StringName.Version)}");
+                Console.WriteLine($"[GL] Vendor  : {GL.GetString(StringName.Vendor)}");
+                Console.WriteLine($"[GL] Renderer: {GL.GetString(StringName.Renderer)}");
+            }
+            catch { /* safe to ignore */ }
+        }
+
+        private void OnUnload()
+        {
+            // Clean up GL resources here later if needed
+        }
+
+        private void Update(FrameEventArgs e)
+        {
+            // Handle input/simulation here
+        }
+
+        private void Render(FrameEventArgs e)
+        {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            OnDraw?.Invoke((float)args.Time);         // <-- NULL-GUARDED
+            // Call user draw code
+            OnDraw?.Invoke((float)e.Time);
 
-            SwapBuffers();
+            _gw.SwapBuffers();
         }
+
+        /// <summary>Blocks until the window is closed.</summary>
+        public void Run() => _gw.Run();
+
+        public void Close() => _gw.Close();
+
+        public void Dispose() => _gw.Dispose();
     }
 }
