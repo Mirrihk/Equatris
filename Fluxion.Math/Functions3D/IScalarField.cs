@@ -1,12 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Fluxion.Fluxion.Math.Functions3D
+﻿namespace Flucion.Math.Functions3D
 {
-    internal interface IScalarField
+   /*
+    * <summary>
+      Represents a Scalar field z= f(x,y)
+    * </summary>
+    */
+
+    public interface IScalarField
     {
+        double Evaluate(double x, double y);
     }
+    public sealed class DelegateScalarField : IScalarField
+    {
+        private readonly System.Func<double, double, double> f;
+        public DelegateScalarField(System.Func<double, double, double> f) => this.f = f;
+        public double Evaluate(double x, double y) => f(x, y);
+
+    }
+   
+
 }
