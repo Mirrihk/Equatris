@@ -1,16 +1,21 @@
-﻿// Fluxion.Core/App/Program.cs
-using Fluxion.Features;                 // for Graph3DFeature
-// Option A: fully qualify System.Math inside the lambda (most robust)
+﻿using System;
+using static System.Math;
+using Fluxion.Features;
+
 namespace Fluxion.Core.App
 {
     public static class Program
     {
         public static void Main(string[] args)
         {
-            Graph3DFeature.Surface(
-                (x, y) => global::System.Math.Sin(x) * global::System.Math.Cos(y),
-                xMin: -6, xMax: 6, yMin: -6, yMax: 6,
-                resolution: 120, wireframe: true);
+            // 2D
+            Graph2DFeature.Function(System.Math.Sin, -2 * System.Math.PI, 2 * System.Math.PI);
+
+            // 3D (same equation, lifted)
+            Graph3DFeature.Surface((x, y) => System.Math.Sin(x) * System.Math.Cos(y),
+                                   -2 * System.Math.PI, 2 * System.Math.PI, -2 * System.Math.PI, 2 * System.Math.PI,
+                                   resolution: 180, wireframe: true);
+
         }
     }
 }
