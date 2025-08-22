@@ -1,91 +1,60 @@
 ﻿// Fluxion.Rendering/Windowing/FluxWindow.cs
-using System;
+using Fluxion.Rendering.Scene;
 using OpenTK.Graphics.OpenGL4;
-using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 
 namespace Fluxion.Rendering.Windowing
 {
-    /// <summary>
-    /// Thin wrapper around OpenTK's GameWindow.
-    /// Lets you plug in drawing code via OnDraw.
-    /// </summary>
-    public sealed class FluxWindow : IDisposable
+    public sealed class FluxWindow : GameWindow
     {
-        private readonly GameWindow _gw;
+        private readonly IScene scene;
 
-        /// <summary>
-        /// Called every frame with deltaTime (in seconds).
-        /// Assign your rendering logic here.
-        /// </summary>
-        public Action<float>? OnDraw { get; set; }
-
-        public FluxWindow(int width, int height, string title)
-        {
-            var native = new NativeWindowSettings
+        public FluxWindow(string title, int width, int height, IScene scene)
+            : base(GameWindowSettings.Default, new NativeWindowSettings
             {
                 Title = title,
-                ClientSize = new Vector2i(width, height),
-                APIVersion = new Version(3, 3),
-                StartVisible = true,
-                StartFocused = true
-            };
-
-            _gw = new GameWindow(GameWindowSettings.Default, native);
-
-            // Hooks
-            _gw.Load += OnLoad;
-            _gw.Unload += OnUnload;
-            _gw.Resize += e => GL.Viewport(0, 0, _gw.ClientSize.X, _gw.ClientSize.Y);
-            _gw.UpdateFrame += Update;
-            _gw.RenderFrame += Render;
-
-            // Start with VSync on
-            _gw.VSync = VSyncMode.On;
+                ClientSize = new(width, height)
+            })
+        {
+            this.scene = scene;
         }
 
-        private void OnLoad()
+        protected override void OnLoad()
         {
-            GL.ClearColor(0.10f, 0.10f, 0.12f, 1f);
-            GL.Enable(EnableCap.Blend);
-            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-
-            // Debug info
-            try
-            {
-                Console.WriteLine($"[GL] Version : {GL.GetString(StringName.Version)}");
-                Console.WriteLine($"[GL] Vendor  : {GL.GetString(StringName.Vendor)}");
-                Console.WriteLine($"[GL] Renderer: {GL.GetString(StringName.Renderer)}");
-            }
-            catch { /* safe to ignore */ }
+            base.OnLoad();
+            // Do NOT create GL objects before this!
+            scene.OnLoad();
         }
 
-        private void OnUnload()
+        protected override void OnResize(ResizeEventArgs e)
         {
-            // Clean up GL resources here later if needed
+            base.OnResize(e);
+            GL.Viewport(0, 0, Size.X, Size.Y);
+            scene.OnResize(Size.X, Size.Y);
         }
 
-        private void Update(FrameEventArgs e)
+        protected override void OnUpdateFrame(FrameEventArgs args)
         {
-            // Handle input/simulation here
+            base.OnUpdateFrame(args);
+            scene.OnUpdate(args.Time);
         }
 
-        private void Render(FrameEventArgs e)
+        protected override void OnRenderFrame(FrameEventArgs args)
         {
+            base.OnRenderFrame(args);
+            // Clear; scenes can override depth enable/disable as they like
+            GL.ClearColor(0.06f, 0.07f, 0.09f, 1f);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            // Call user draw code
-            OnDraw?.Invoke((float)e.Time);
-
-            _gw.SwapBuffers();
+            scene.OnRender();
+            SwapBuffers();
         }
 
-        /// <summary>Blocks until the window is closed.</summary>
-        public void Run() => _gw.Run();
-
-        public void Close() => _gw.Close();
-
-        public void Dispose() => _gw.Dispose();
+        protected override void OnUnload()
+        {
+            base.OnUnload();
+            scene.Dispose();
+        }
     }
 }
