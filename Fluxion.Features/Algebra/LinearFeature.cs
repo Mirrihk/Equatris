@@ -1,5 +1,4 @@
 ﻿// Fluxion.Features/Algebra/LinearFeature.cs
-using System;
 using Fluxion.Math.Algebra.Equations;   // Linear
 using Fluxion.Math.Algebra.Solvers;     // LinearSolver
 using Fluxion.Rendering.Windowing;      // FluxWindow
@@ -8,15 +7,11 @@ using Fluxion.Rendering.Visualize;      // GraphLinear
 
 namespace Fluxion.Features.Algebra
 {
-    /// <summary>
     /// Runnable helpers for Linear equations: Ax + B = 0  and  a*x + b = c*x + d (steps).
     /// Keeps Program.cs clean by exposing one-liners.
-    /// </summary>
     public static class LinearFeature
     {
-        /// <summary>
         /// Solve A*x + B = 0 and print the answer (+ quick check).
-        /// </summary>
         public static void SolveAndPrint(double A, double B, int decimals = 4)
         {
             var eq = new Linear(A, B);
@@ -33,9 +28,7 @@ namespace Fluxion.Features.Algebra
             Console.WriteLine($"Check: A*x + B = {eq.Evaluate(x)} (should be ~0)");
         }
 
-        /// <summary>
-        /// Show human steps for A*x + B = 0 (single-side linear).
-        /// </summary>
+        /// Show  steps for A*x + B = 0 (single-side linear).
         public static void ShowSteps(double A, double B, int decimals = 4)
         {
             Console.WriteLine($"\nSolve {A}x + {B} = 0");
@@ -53,10 +46,8 @@ namespace Fluxion.Features.Algebra
             Console.WriteLine($"• x ≈ {System.Math.Round(x, decimals)}");
         }
 
-        /// <summary>
         /// Show steps for a two-sided linear equation a*x + b = c*x + d.
         /// Uses LinearSolver for narration and result.
-        /// </summary>
         public static void ShowSteps(double a, double b, double c, double d, int decimals = 4)
         {
             Console.WriteLine($"\nSolve {a}x + {b} = {c}x + {d}");
