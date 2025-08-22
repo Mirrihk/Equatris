@@ -1,32 +1,16 @@
 ﻿// Fluxion.Core/App/Program.cs
-using Fluxion.Features.Algebra;
-using Fluxion.Math.Algebra.Solvers;
-using Fluxion.Rendering.Draw;
-using Fluxion.Rendering.Visualize;
-
+using Fluxion.Features;                 // for Graph3DFeature
+// Option A: fully qualify System.Math inside the lambda (most robust)
 namespace Fluxion.Core.App
 {
     public static class Program
     {
         public static void Main(string[] args)
         {
-            /*
-            Graph3DFeature.Surface((x, y) => MathSin(x) * Math.Cos(y),
-               xMin: -6, xMax: 6, yMin: -6, yMax: 6,
-               resolution: 120, wireframe: true); 
-             */   
+            Graph3DFeature.Surface(
+                (x, y) => global::System.Math.Sin(x) * global::System.Math.Cos(y),
+                xMin: -6, xMax: 6, yMin: -6, yMax: 6,
+                resolution: 120, wireframe: true);
         }
     }
 }
-
-
-
-    ///Same as before
-    // LinearFeature.SolveAndPrint(A: 5, B: -15);
-    //LinearFeature.Graph(A: 5, B: -15, xMin: -2, xMax: 6);
-
-    // NEW: show steps (single-side)
-    //LinearFeature.ShowSteps(A: 5, B: -15);
-
-    // NEW: show steps (two-sided): 12.6 + 4x = 9.6 + 8x
-    //LinearFeature.ShowSteps(a: 7, b: 0.4, c: 6, d: 1.4);

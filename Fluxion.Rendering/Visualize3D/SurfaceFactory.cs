@@ -1,5 +1,4 @@
-﻿using Flucion.Math.Functions3D;
-using Fluxion.Math.Functions3D;
+﻿using Fluxion.Math.Functions3D;
 using OpenTK.Mathematics;
 using System;
 
@@ -11,7 +10,7 @@ namespace Fluxion.Rendering.Visualize3D
         public static Mesh3D BuildSurface(IScalarField f,
             double xMin, double xMax, double yMin, double yMax, int resolution)
         {
-            resolution = Math.Max(2, resolution);
+            resolution = System.Math.Max(2, resolution);
 
             int nx = resolution, ny = resolution;
             int vCount = nx * ny;
@@ -41,8 +40,8 @@ namespace Fluxion.Rendering.Visualize3D
                 {
                     int idx = j * nx + i;
 
-                    int il = Math.Max(i - 1, 0), ir = Math.Min(i + 1, nx - 1);
-                    int jb = Math.Max(j - 1, 0), jt = Math.Min(j + 1, ny - 1);
+                    int il = System.Math.Max(i - 1, 0), ir = System.Math.Min(i + 1, nx - 1);
+                    int jb = System.Math.Max(j - 1, 0), jt = System.Math.Min(j + 1, ny - 1);
 
                     var pl = pos[j * nx + il];
                     var pr = pos[j * nx + ir];
@@ -82,7 +81,7 @@ namespace Fluxion.Rendering.Visualize3D
         /// <summary>Samples a parametric curve r(t) and outputs a thin triangle strip as “tube” substitute.</summary>
         public static Mesh3D BuildPolyline(Func<double, Vector3d> r, double tMin, double tMax, int samples)
         {
-            samples = Math.Max(2, samples);
+            samples = System.Math.Max(2, samples);
             var pts = new Vector3[samples];
             double dt = (tMax - tMin) / (samples - 1);
 
