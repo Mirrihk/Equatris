@@ -29,9 +29,13 @@ namespace Fluxion.Rendering.SceneImpl
         public void OnLoad()
         {
             GL.Enable(EnableCap.DepthTest);
+
             renderer = new SurfaceRenderer();
             axes = new Axis3DRenderer();
+
+            // If your mesh is lines (no indices) and you asked for wireframe, render as lines
             renderer.Upload(mesh, wireframeAsLines: wireframe && mesh.Indices.Length == 0);
+
             model = Matrix4.Identity;
         }
 
@@ -42,21 +46,24 @@ namespace Fluxion.Rendering.SceneImpl
 
         public void OnUpdate(double dt)
         {
-            cam.Yaw += 0.15 * dt; // simple idle orbit
+            // gentle idle orbit
+            cam.Yaw += 0.15 * dt;
         }
 
         public void OnRender()
         {
             view = cam.GetViewMatrix();
             var mvp = model * view * proj;
-            axes!.DrawAxes(mvp);
-            renderer!.Draw(mvp, model, wireframe);
+
+            // Draw axes/grid first (depth-tested), then the surface
+            axes?.Draw(mvp);                 // <-- previously DrawAxes(mvp)
+            renderer?.Draw(mvp, model, wireframe);
         }
 
         public void Dispose()
         {
             renderer?.Dispose();
-            axes = null; // nothing to dispose
+            axes = null; // nothing to dispose for axes
         }
     }
 }

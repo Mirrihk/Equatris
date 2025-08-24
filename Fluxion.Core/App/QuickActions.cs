@@ -4,9 +4,40 @@ using Fluxion.Features;
 
 namespace Fluxion.Core.App
 {
+
     /// <summary>Reusable demo calls you can invoke from Program.Main or the CLI.</summary>
     public static class QuickSimulations
     {
+        // Add inside Fluxion.Core.App.QuickSimulations
+        public static void RunAll(bool waitBetween = true)
+        {
+            var demos = new (string name, Action call)[]
+            {
+        ("sin2d",        Sin2D),
+        ("sinradial3d",  SinRadialSurface3D),
+        ("sin3dline",    Sin3DLine),
+        ("line2d",       () => Line2D()),
+        ("line3d",       () => Line3DOnXZ(offsetY: 1.0)),
+        ("polyline3d",   Polyline3D_XY_Z0),
+        ("sxcysurface",  () => SinCosSurface3D(wireframe: true)),
+        ("helix",        Helix3D),
+            };
+
+            foreach (var (name, call) in demos)
+            {
+                Console.WriteLine($"\n=== {name} ===");
+                try { call(); }
+                catch (Exception ex) { Console.WriteLine($"[ERROR] {name}: {ex.Message}"); }
+                if (waitBetween) Pause();
+            }
+        }
+
+        private static void Pause()
+        {
+            Console.Write("Press Enter for next demo...");
+            Console.ReadLine();
+        }
+
         public static void Sin2D()
         {
             Graph.F(System.Math.Sin)

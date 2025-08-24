@@ -1,5 +1,5 @@
 ﻿// Fluxion.Rendering/Scene/Plot2DScene.cs
-using Fluxion.Rendering.Draw;        // AxesRenderer, CurveRenderer2D
+using Fluxion.Rendering.Draw;        // AxesRenderer, Axes2DOptions, CurveRenderer2D
 using Fluxion.Rendering.Scene;
 using Fluxion.Rendering.Visualize;   // Plot2D
 using OpenTK.Graphics.OpenGL4;
@@ -28,6 +28,12 @@ namespace Fluxion.Rendering.SceneImpl
         {
             // Context is current here—safe to create GL objects
             GL.Disable(EnableCap.DepthTest);
+
+            // Added: make lines/grid look smoother & allow alpha blending
+            GL.Enable(EnableCap.Blend);
+            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+            GL.Enable(EnableCap.LineSmooth);
+
             axes = new AxesRenderer();
             curve = new CurveRenderer2D();
         }
@@ -44,7 +50,23 @@ namespace Fluxion.Rendering.SceneImpl
 
         public void OnRender()
         {
-            axes!.DrawAxes(proj);
+            // Replaces: axes!.DrawAxes(proj);
+            // Draw a proper grid with major/minor lines and tick marks based on world bounds.
+            axes!.DrawAxesGrid(
+        proj,
+        (float)xMin, (float)xMax,
+        (float)yMin, (float)yMax,
+    new Axes2DOptions
+    {
+        MinorDivisions = 5,
+        ShowMinor = true,
+        ShowGrid = true,
+        ShowTicks = true,
+        TickLength = (float)((xMax - xMin) * 0.01) // ~1% of width
+    });
+
+
+            // Your curve draw stays the same
             curve!.Draw(plot, proj);
         }
 
