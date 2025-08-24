@@ -42,4 +42,12 @@
     <Folder Include="Fluxion.Simulations\NBody\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EditorConfigFiles Remove="C:\Users\sebas\source\repos\Fluxion\.editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="C:\Users\sebas\source\repos\Fluxion\.editorconfig" />
+  </ItemGroup>
+
 </Project>

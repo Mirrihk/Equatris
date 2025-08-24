@@ -1,0 +1,511 @@
+# Fluxion Coding Standards
+
+## Overview
+These standards ensure consistency, maintainability, and clarity across the Fluxion math + visualization engine. They're designed to support the modular architecture separating math models, rendering, and runnable features.
+
+## Table of Contents
+- [Naming Conventions](#naming-conventions)
+- [Code Organization](#code-organization)
+- [Class Design](#class-design)
+- [Method Design](#method-design)
+- [Documentation](#documentation)
+- [Error Handling](#error-handling)
+- [Performance Guidelines](#performance-guidelines)
+- [Testing Standards](#testing-standards)
+- [OpenTK/OpenGL Specific](#opentkOpengl-specific)
+
+## Naming Conventions
+
+### Classes and Interfaces
+- **PascalCase** for all class names
+- **Descriptive and specific** names that reflect purpose
+- **Interface prefix**: Use `I` prefix for interfaces
+```csharp
+// ? Good
+public class LinearEquationSolver
+public interface IRenderer
+public class Matrix3D
+
+// ? Avoid
+public class Solver
+public class Helper
+public class Utils
+```
+
+### Methods and Properties
+- **PascalCase** for public methods and properties
+- **camelCase** for private fields and local variables
+- **Verb-noun** pattern for methods
+```csharp
+// ? Good
+public void CalculateDerivative()
+public double GetMagnitude()
+private readonly float rotationSpeed;
+private Vector3 currentPosition;
+
+// ? Avoid
+public void calc()
+public double mag()
+private float Speed;
+```
+
+### Constants and Enums
+- **PascalCase** for enum values
+- **UPPER_SNAKE_CASE** for constants
+```csharp
+// ? Good
+public const double PI_SQUARED = Math.PI * Math.PI;
+public enum RenderMode { Wireframe, Solid, Textured }
+
+// ? Avoid
+public const double piSquared = Math.PI * Math.PI;
+public enum RenderMode { wireframe, solid, textured }
+```
+
+## Code Organization
+
+### File Structure
+- **One class per file** (except for small, tightly coupled classes)
+- **File name matches class name**
+- **Namespace matches folder structure**
+```csharp
+// File: Fluxion.Math/Algebra/LinearEquationSolver.cs
+namespace Fluxion.Math.Algebra
+{
+    public class LinearEquationSolver
+    {
+        // Implementation
+    }
+}
+```
+
+### Using Statements
+- **System namespaces first**, then third-party, then project namespaces
+- **Alphabetical order** within each group
+- **Remove unused** using statements
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+using OpenTK.Graphics.OpenGL4;
+using OpenTK.Mathematics;
+
+using Fluxion.Math.Core;
+using Fluxion.Rendering.Core;
+```
+
+### Class Member Order
+1. Constants
+2. Fields (private, then protected, then public)
+3. Constructors
+4. Properties
+5. Public methods
+6. Protected methods
+7. Private methods
+
+## Class Design
+
+### Single Responsibility
+- **Each class has one clear purpose**
+- **Math classes**: Pure computation, no rendering logic
+- **Render classes**: Visualization only, minimal math
+- **Feature classes**: Orchestrate math + rendering
+```csharp
+// ? Good - Single responsibility
+public class QuadraticFunction
+{
+    public double Evaluate(double x) { /* pure math */ }
+    public double GetDerivative(double x) { /* pure math */ }
+}
+
+public class FunctionRenderer
+{
+    public void RenderFunction(IFunction function) { /* rendering only */ }
+}
+
+// ? Avoid - Mixed responsibilities
+public class QuadraticFunction
+{
+    public double Evaluate(double x) { /* math */ }
+    public void Draw() { /* rendering - doesn't belong here */ }
+}
+```
+
+### Immutability When Possible
+- **Prefer readonly** fields and properties
+- **Use `init` accessors** for properties that should be set once
+- **Create new instances** rather than modifying existing ones for math operations
+```csharp
+// ? Good
+public class Vector3D
+{
+    public double X { get; init; }
+    public double Y { get; init; }
+    public double Z { get; init; }
+    
+    public Vector3D Add(Vector3D other) => new(X + other.X, Y + other.Y, Z + other.Z);
+}
+
+// ? Avoid
+public class Vector3D
+{
+    public double X { get; set; }
+    public double Y { get; set; }
+    public double Z { get; set; }
+    
+    public void Add(Vector3D other)
+    {
+        X += other.X; // Mutates existing instance
+        Y += other.Y;
+        Z += other.Z;
+    }
+}
+```
+
+## Method Design
+
+### Method Length
+- **Keep methods focused** - ideally under 20 lines
+- **Extract complex logic** into private helper methods
+- **Use descriptive method names** that explain what they do
+
+### Parameters
+- **Limit to 4-5 parameters** maximum
+- **Use parameter objects** for complex parameter sets
+- **Validate parameters** early
+```csharp
+// ? Good
+public class RenderSettings
+{
+    public Color BackgroundColor { get; init; }
+    public bool ShowGrid { get; init; }
+    public float LineWidth { get; init; }
+}
+
+public void RenderGraph(IFunction function, RenderSettings settings)
+{
+    ArgumentNullException.ThrowIfNull(function);
+    ArgumentNullException.ThrowIfNull(settings);
+    // Implementation
+}
+
+// ? Avoid
+public void RenderGraph(IFunction function, float r, float g, float b, bool grid, float width, int samples)
+{
+    // Too many parameters
+}
+```
+
+### Return Values
+- **Avoid `null` returns** when possible - use nullable types explicitly
+- **Return meaningful types** - avoid `object` or `dynamic`
+- **Consider `Result<T>` pattern** for operations that can fail
+```csharp
+// ? Good
+public Vector3D? FindIntersection(Line3D line1, Line3D line2)
+{
+    // Returns null only when no intersection exists
+}
+
+public Result<Matrix> InvertMatrix(Matrix input)
+{
+    if (input.Determinant == 0)
+        return Result<Matrix>.Failure("Matrix is not invertible");
+    
+    return Result<Matrix>.Success(CalculateInverse(input));
+}
+```
+
+## Documentation
+
+### XML Documentation
+- **All public members** must have XML documentation
+- **Include parameter descriptions** and return value explanations
+- **Add examples** for complex mathematical operations
+```csharp
+/// <summary>
+/// Calculates the definite integral of a function over a specified interval using Simpson's rule.
+/// </summary>
+/// <param name="function">The function to integrate. Must be continuous over the interval.</param>
+/// <param name="lowerBound">The lower bound of integration.</param>
+/// <param name="upperBound">The upper bound of integration.</param>
+/// <param name="subdivisions">Number of subdivisions (must be even). Higher values increase accuracy.</param>
+/// <returns>The approximate value of the definite integral.</returns>
+/// <example>
+/// <code>
+/// var quadratic = new QuadraticFunction(1, 0, 0); // f(x) = x²
+/// var integral = integrator.Calculate(quadratic, 0, 2, 100); // Should ? 8/3
+/// </code>
+/// </example>
+/// <exception cref="ArgumentException">Thrown when subdivisions is not even or less than 2.</exception>
+public double Calculate(IFunction function, double lowerBound, double upperBound, int subdivisions)
+```
+
+### Inline Comments
+- **Explain WHY, not WHAT** - the code should be self-explanatory for what
+- **Mathematical formulas** should be documented with their source
+- **Complex algorithms** should reference academic papers or sources
+```csharp
+// Calculate using Simpson's 1/3 rule: ?f(x)dx ? (h/3)[f(x?) + 4f(x?) + 2f(x?) + ... + f(x?)]
+// Reference: "Numerical Methods for Engineers" by Chapra & Canale, Chapter 21
+for (int i = 1; i < subdivisions; i++)
+{
+    double x = lowerBound + i * stepSize;
+    // Alternate between coefficients 4 and 2 for Simpson's rule
+    double coefficient = (i % 2 == 1) ? 4.0 : 2.0;
+    sum += coefficient * function.Evaluate(x);
+}
+```
+
+## Error Handling
+
+### Exception Types
+- **Use appropriate exception types** - don't throw generic `Exception`
+- **ArgumentException** for invalid parameters
+- **InvalidOperationException** for invalid state
+- **Custom exceptions** for domain-specific errors
+```csharp
+// ? Good
+public class SingularMatrixException : InvalidOperationException
+{
+    public SingularMatrixException(string message) : base(message) { }
+}
+
+public Matrix Invert(Matrix matrix)
+{
+    if (Math.Abs(matrix.Determinant) < double.Epsilon)
+        throw new SingularMatrixException("Cannot invert a singular matrix (determinant ? 0)");
+    
+    return CalculateInverse(matrix);
+}
+
+// ? Avoid
+public Matrix Invert(Matrix matrix)
+{
+    if (matrix.Determinant == 0)
+        throw new Exception("Bad matrix"); // Too generic
+}
+```
+
+### Input Validation
+- **Validate early** at method entry
+- **Use guard clauses** for preconditions
+- **Provide meaningful error messages**
+```csharp
+public void SetViewport(int width, int height)
+{
+    ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width, nameof(width));
+    ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height, nameof(height));
+    
+    // Implementation
+}
+```
+
+## Performance Guidelines
+
+### Memory Management
+- **Avoid frequent allocations** in render loops
+- **Reuse objects** when possible (object pooling for frequently created objects)
+- **Use `stackalloc` for small arrays** in performance-critical code
+```csharp
+// ? Good - Reuse vertex buffer
+public class MeshRenderer
+{
+    private readonly float[] vertexBuffer = new float[MAX_VERTICES * 3];
+    
+    public void UpdateMesh(IEnumerable<Vector3> vertices)
+    {
+        int index = 0;
+        foreach (var vertex in vertices)
+        {
+            vertexBuffer[index++] = (float)vertex.X;
+            vertexBuffer[index++] = (float)vertex.Y;
+            vertexBuffer[index++] = (float)vertex.Z;
+        }
+        // Update GPU buffer
+    }
+}
+
+// ? Avoid - Creates new array each time
+public void UpdateMesh(IEnumerable<Vector3> vertices)
+{
+    var buffer = vertices.SelectMany(v => new[] { (float)v.X, (float)v.Y, (float)v.Z }).ToArray();
+    // Update GPU buffer
+}
+```
+
+### Mathematical Operations
+- **Cache expensive calculations** when values don't change
+- **Use appropriate precision** (float vs double) based on needs
+- **Vectorize operations** when possible using SIMD
+```csharp
+// ? Good - Cache expensive trigonometric calculations
+public class CircleRenderer
+{
+    private Vector3[]? cachedVertices;
+    private int cachedSegments;
+    
+    private Vector3[] GetCircleVertices(int segments)
+    {
+        if (cachedVertices == null || cachedSegments != segments)
+        {
+            cachedVertices = GenerateCircleVertices(segments);
+            cachedSegments = segments;
+        }
+        return cachedVertices;
+    }
+}
+```
+
+## Testing Standards
+
+### Unit Tests
+- **Test all public methods** with meaningful test cases
+- **AAA pattern**: Arrange, Act, Assert
+- **Descriptive test names** that explain the scenario
+```csharp
+[Test]
+public void QuadraticFunction_Evaluate_ReturnsCorrectValue()
+{
+    // Arrange - f(x) = 2x² + 3x + 1
+    var function = new QuadraticFunction(a: 2, b: 3, c: 1);
+    
+    // Act
+    double result = function.Evaluate(x: 2);
+    
+    // Assert - f(2) = 2(4) + 3(2) + 1 = 8 + 6 + 1 = 15
+    Assert.AreEqual(15.0, result, 1e-10);
+}
+
+[Test]
+public void MatrixInverter_Invert_ThrowsExceptionForSingularMatrix()
+{
+    // Arrange - Create singular matrix (determinant = 0)
+    var singularMatrix = new Matrix(new double[,] { {1, 2}, {2, 4} });
+    
+    // Act & Assert
+    Assert.Throws<SingularMatrixException>(() => MatrixInverter.Invert(singularMatrix));
+}
+```
+
+### Test Organization
+- **One test class per production class**
+- **Group related tests** using nested classes or descriptive prefixes
+- **Test edge cases**: null inputs, empty collections, boundary values
+
+## OpenTK/OpenGL Specific
+
+### Resource Management
+- **Dispose OpenGL resources** properly using `using` statements or explicit disposal
+- **Check for OpenGL errors** in debug builds
+- **Separate OpenGL state management** from business logic
+```csharp
+// ? Good
+public class ShaderProgram : IDisposable
+{
+    private readonly int programId;
+    private bool disposed = false;
+    
+    public ShaderProgram(string vertexSource, string fragmentSource)
+    {
+        programId = GL.CreateProgram();
+        // Compilation logic
+    }
+    
+    public void Use()
+    {
+        GL.UseProgram(programId);
+        CheckGLError("UseProgram");
+    }
+    
+    [Conditional("DEBUG")]
+    private static void CheckGLError(string operation)
+    {
+        var error = GL.GetError();
+        if (error != ErrorCode.NoError)
+            throw new InvalidOperationException($"OpenGL error after {operation}: {error}");
+    }
+    
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!disposed && programId != 0)
+        {
+            GL.DeleteProgram(programId);
+            disposed = true;
+        }
+    }
+    
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+}
+```
+
+### Rendering Patterns
+- **Batch similar operations** to minimize state changes
+- **Use vertex array objects (VAOs)** for complex geometry
+- **Separate mesh data from rendering logic**
+```csharp
+// ? Good - Clear separation
+public class FunctionMesh
+{
+    public Vector3[] Vertices { get; init; }
+    public uint[] Indices { get; init; }
+    // Pure data, no rendering logic
+}
+
+public class MeshRenderer
+{
+    public void Render(FunctionMesh mesh, ShaderProgram shader)
+    {
+        shader.Use();
+        // Bind VAO, draw, etc.
+        // Pure rendering, no data generation
+    }
+}
+```
+
+## Code Review Checklist
+
+### Before Submitting
+- [ ] All public APIs have XML documentation
+- [ ] Unit tests cover new functionality
+- [ ] No compiler warnings
+- [ ] Code follows naming conventions
+- [ ] OpenGL resources are properly disposed
+- [ ] Performance-critical paths avoid unnecessary allocations
+
+### During Review
+- [ ] Single responsibility principle followed
+- [ ] Error handling is appropriate and consistent
+- [ ] Mathematical operations are numerically stable
+- [ ] Code is readable and self-documenting
+- [ ] Tests are meaningful and cover edge cases
+
+## Tools and Extensions
+
+### Recommended Visual Studio Extensions
+- **CodeMaid**: Automatic code cleanup
+- **SonarLint**: Real-time code quality analysis
+- **ReSharper** (optional): Advanced refactoring and analysis
+
+### EditorConfig Settings
+Consider adding an `.editorconfig` file to enforce consistent formatting across the team:
+```ini
+root = true
+
+[*.cs]
+indent_style = space
+indent_size = 4
+end_of_line = crlf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+```
+
+---
+
+*These standards are living guidelines. Update them as the Fluxion project evolves and new patterns emerge.*
