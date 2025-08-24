@@ -26,20 +26,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Fluxion.AI\Autodiff\" />
-    <Folder Include="Fluxion.AI\Models\" />
-    <Folder Include="Fluxion.AI\Training\" />
     <Folder Include="Fluxion.Math\Calculus\" />
     <Folder Include="Fluxion.Math\ODE\" />
     <Folder Include="Fluxion.Math\Optimazation\" />
     <Folder Include="Fluxion.Math\Trigonometry\" />
-    <Folder Include="Fluxion.Physics\Autodiff\" />
-    <Folder Include="Fluxion.Physics\Models\" />
-    <Folder Include="Fluxion.Physics\Training\" />
-    <Folder Include="Fluxion.Simulations\DoublePendulum\" />
-    <Folder Include="Fluxion.Simulations\Examples\" />
-    <Folder Include="Fluxion.Simulations\Interfaces\" />
-    <Folder Include="Fluxion.Simulations\NBody\" />
   </ItemGroup>
 
   <ItemGroup>
